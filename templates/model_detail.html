@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+
+{% block title %}{{ model.name }} - MotoNexAI{% endblock %}
+
+{% block content %}
+<style>
+    /* Styles specific to this page, or extend from base.html's style block */
+    .breadcrumb-item a {
+        color: rgba(255, 255, 255, 0.7) !important;
+    }
+    .breadcrumb-item.active {
+        color: white !important;
+    }
+
+    .card-header {
+        background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-radius: 15px 15px 0 0;
+        font-weight: 600;
+        padding: 1rem;
+    }
+
+    .badge-custom {
+        background: var(--accent-color);
+        color: white;
+        border-radius: 15px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+        margin: 0.2rem;
+        display: inline-block;
+    }
+
+    .gpu-selector {
+        background: var(--light-bg);
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 1rem 0;
+        border: 1px solid #dee2e6; /* Added border for definition */
+    }
+
+    /* Specific badge colors for cloud providers - ADDED !important */
+    .badge-provider-aws { background-color: #ff9900 !important; color: #fff !important; } /* AWS Orange */
+    .badge-provider-google { background-color: #4285F4 !important; color: #fff !important; } /* Google Blue */
+    .badge-provider-azure { background-color: #0078D4 !important; color: #fff !important; } /* Azure Blue */
+    .badge-provider-local { background-color: #6c757d !important; color: #fff !important; } /* Grey for local/other */
+
+    .list-unstyled li {
+        margin-bottom: 0.25rem;
+    }
+</style>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb bg-transparent text-white">
+                    <li class="breadcrumb-item"><a href="{{ url_for('home') }}" class="text-white-50">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('models') }}" class="text-white-50">Models</a></li>
+                    <li class="breadcrumb-item active text-white">{{ model.name }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">{{ model.name }}</h2>
+                    <p class="mb-0 text-muted">{{ model.description }}</p>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>License</h5>
+                            <span class="badge bg-success">{{ model.license }}</span>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Modality</h5>
+                            <span class="badge bg-primary">{{ modality.title() }}</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Supported Tasks</h5>
+                        {% for task in model.tasks %}
+                            <span class="badge-custom">{{ task }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Performance Benchmarks</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                {% for metric, score in model.benchmarks.items() %}
+                                <tr>
+                                    <td><strong>{{ metric }}</strong></td>
+                                    <td>{{ score }}</td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Tags</h5>
+                        {% for tag in model.tags %}
+                            <span class="badge bg-secondary me-1">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-rocket"></i> Deploy Model</h4>
+                </div>
+                <div class="card-body">
+                    <form id="deployForm">
+                        <input type="hidden" name="model_name" value="{{ model.name }}">
+                        
+                        <div class="mb-3">
+                            <label for="gpu_type" class="form-label">Select GPU Type</label>
+                            <select class="form-select" id="gpu_type" name="gpu_type" required>
+                                <option value="">Choose GPU...</option>
+                                {% for gpu in gpu_types %}
+                                <option 
+                                    value="{{ gpu.name }}" 
+                                    data-memory="{{ gpu.memory }}" 
+                                    data-best-for="{{ gpu.best_for }}"
+                                    data-price-range='{{ gpu.price_range_usd_per_hour_on_demand | tojson }}'
+                                    data-instance-families='{{ gpu.common_instance_families | tojson }}'
+                                >
+                                    {{ gpu.name }} ({{ gpu.memory }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="gpu-selector" id="gpuInfo" style="display: none;">
+                            <h6>GPU Details</h6>
+                            <div id="gpuDetails"></div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-play"></i> Deploy Now
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5><i class="fas fa-code"></i> Integration</h5>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">Once deployed, you can integrate via:</p>
+                    <ul class="small">
+                        <li>REST API endpoints</li>
+                        <li>Python SDK</li>
+                        <li>JavaScript SDK</li>
+                        <li>cURL commands</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deploymentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Deployment Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="deploymentStatus">
+                <div class="loading-spinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Deploying your model...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('gpu_type').addEventListener('change', function() {
+    const selected = this.options[this.selectedIndex];
+    const gpuInfo = document.getElementById('gpuInfo');
+    const gpuDetails = document.getElementById('gpuDetails');
+    
+    if (selected.value) {
+        const memory = selected.dataset.memory;
+        const bestFor = selected.dataset.bestFor; // Directly accessed now
+        const priceRange = JSON.parse(selected.dataset.priceRange || '{}'); // Parse JSON string
+        const instanceFamilies = JSON.parse(selected.dataset.instanceFamilies || '{}'); // Parse JSON string
+        
+        let priceHtml = '<ul class="list-unstyled">'; // Added list-unstyled
+        for (const provider in priceRange) {
+            priceHtml += `<li><span class="badge badge-provider-${provider.toLowerCase()}">${provider}</span>: ${priceRange[provider]}</li>`;
+        }
+        priceHtml += '</ul>';
+
+        let instanceFamilyHtml = '';
+        if (Object.keys(instanceFamilies).length > 0) {
+            instanceFamilyHtml = '<h6>Common Instance Families:</h6><ul class="list-unstyled">'; // Added list-unstyled
+            for (const provider in instanceFamilies) {
+                if (instanceFamilies[provider] !== "N/A") {
+                    instanceFamilyHtml += `<li><span class="badge badge-provider-${provider.toLowerCase()}">${provider}</span>: ${instanceFamilies[provider]}</li>`;
+                }
+            }
+            instanceFamilyHtml += '</ul>';
+        }
+        
+        gpuDetails.innerHTML = `
+            <p><strong>Memory:</strong> ${memory || 'N/A'}</p>
+            <p><strong>Best For:</strong> ${bestFor || 'Information not available'}</p>
+            <hr>
+            <h6>Estimated On-Demand Price (per hour):</h6>
+            ${priceHtml}
+            ${instanceFamilyHtml}
+        `;
+        gpuInfo.style.display = 'block';
+    } else {
+        gpuInfo.style.display = 'none';
+    }
+});
+
+document.getElementById('deployForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const modal = new bootstrap.Modal(document.getElementById('deploymentModal'));
+    modal.show();
+    
+    const formData = new FormData(this);
+    
+    fetch('/deploy-model', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        const statusDiv = document.getElementById('deploymentStatus');
+        if (data.success) {
+            statusDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <h5><i class="fas fa-check-circle"></i> Deployment Successful!</h5>
+                    <p><strong>Deployment ID:</strong> ${data.deployment_id}</p>
+                    <p><strong>Endpoint:</strong> <code>${data.endpoint}</code></p>
+                    <p><strong>Estimated startup:</strong> ${data.estimated_startup_time}</p>
+                </div>
+                <div class="alert alert-info">
+                    <h6>Integration Examples:</h6>
+                    <pre><code>curl -X POST "${data.endpoint}/predict" \\\n -H "Content-Type: application/json" \\\n -d '{"input": "your input here"}'</code></pre>
+                </div>
+            `;
+        } else {
+            statusDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <h5><i class="fas fa-exclamation-triangle"></i> Deployment Failed</h5>
+                    <p>${data.error}</p>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        document.getElementById('deploymentStatus').innerHTML = `
+            <div class="alert alert-danger">
+                <h5><i class="fas fa-exclamation-triangle"></i> Error</h5>
+                <p>Failed to deploy model: ${error.message}</p>
+            </div>
+        `;
+    });
+});
+</script>
+{% endblock %}

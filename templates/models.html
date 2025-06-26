@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Models - MotoNexAI{% endblock %}
+
+{% block content %}
+<style>
+    /* Add these styles to your base.html or a linked CSS file if you prefer */
+    .badge-custom {
+        background: var(--accent-color);
+        color: white;
+        border-radius: 15px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+        margin: 0.2rem;
+        display: inline-block; /* Ensure badges behave correctly */
+    }
+
+    .modality-section {
+        margin-top: 2rem; /* Spacing for new sections */
+    }
+
+    .modality-header {
+        background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 1rem;
+        border-radius: 10px 10px 0 0;
+        margin-bottom: 0;
+        text-transform: capitalize;
+    }
+
+    .model-card .card-header {
+        background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-radius: 15px 15px 0 0;
+        font-weight: 600;
+        padding: 1rem;
+        margin-bottom: 0;
+    }
+
+    /* GPU Specific Card Styling - Reused from model-card for consistency */
+    .gpu-card .card-header {
+        background: linear-gradient(45deg, #3498db, #2980b9); /* A slightly different gradient for GPUs */
+        color: white;
+        border-radius: 15px 15px 0 0;
+        font-weight: 600;
+        padding: 1rem;
+        margin-bottom: 0;
+    }
+
+    /* Specific badge colors for cloud providers - ADDED !important */
+    .badge-provider-aws { background-color: #ff9900 !important; color: #fff !important; } /* AWS Orange */
+    .badge-provider-google { background-color: #4285F4 !important; color: #fff !important; } /* Google Blue */
+    .badge-provider-azure { background-color: #0078D4 !important; color: #fff !important; } /* Azure Blue */
+    .badge-provider-local { background-color: #6c757d !important; color: #fff !important; } /* Grey for local/other */
+
+    .list-unstyled li {
+        margin-bottom: 0.25rem; /* Small spacing for list items */
+    }
+
+    /* Adjust margins for content within cards for better readability */
+    .card-body p, .card-body div {
+        margin-bottom: 0.75rem;
+    }
+    .card-body hr {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="container">
+    <div class="text-center text-white mb-5">
+        <h1><i class="fas fa-brain"></i> AI Model Catalog</h1>
+        <p class="lead">Curated open-source models across all modalities</p>
+    </div>
+
+    {% for modality, models in models_data.items() %}
+    <div class="modality-section">
+        <h3 class="modality-header">
+            {% if modality == 'text' %}
+                <i class="fas fa-comments"></i> Text Models
+            {% elif modality == 'vision' %}
+                <i class="fas fa-eye"></i> Vision Models
+            {% elif modality == 'audio' %}
+                <i class="fas fa-volume-up"></i> Audio Models
+            {% elif modality == 'video' %}
+                <i class="fas fa-video"></i> Video Models
+            {% elif modality == 'multimodal' %}
+                <i class="fas fa-layer-group"></i> Multimodal Models
+            {% endif %}
+        </h3>
+        
+        <div class="row g-4 mb-4">
+            {% for model in models %}
+            <div class="col-lg-6">
+                <div class="card model-card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0">{{ model.name }}</h5>
+                        <small>{{ model.license }}</small>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">{{ model.description }}</p>
+                        
+                        <div class="mb-3">
+                            <strong>Tasks:</strong><br>
+                            {% for task in model.tasks %}
+                                <span class="badge-custom">{{ task }}</span>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Benchmarks:</strong><br>
+                            {% for metric, score in model.benchmarks.items() %}
+                                <small class="text-muted">{{ metric }}: {{ score }}</small><br>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {% for tag in model.tags %}
+                                <span class="badge bg-secondary">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('model_detail', modality=modality, model_name=model.name) }}" 
+                               class="btn btn-primary">
+                                <i class="fas fa-rocket"></i> Deploy Model
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="modality-section mt-5"> {# Added mt-5 for top margin #}
+        <h3 class="modality-header">
+            <i class="fas fa-microchip"></i> Available GPU Types for Deployment
+        </h3>
+        <div class="row g-4 mb-4">
+            {% for gpu in gpu_types %}
+            <div class="col-lg-6">
+                <div class="card gpu-card h-100"> {# Reusing model-card class for consistent styling #}
+                    <div class="card-header">
+                        <h5 class="mb-0">{{ gpu.name }}</h5>
+                        <small>Memory: {{ gpu.memory }}</small>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text"><strong>Best For:</strong> {{ gpu.best_for }}</p>
+                        <hr>
+                        <h6>Estimated On-Demand Price (per hour):</h6>
+                        <ul class="list-unstyled"> {# Using list-unstyled to remove default list styling #}
+                            {% for provider, price in gpu.price_range_usd_per_hour_on_demand.items() %}
+                                <li>
+                                    <span class="badge 
+                                        {% if provider == 'AWS' %}badge-provider-aws
+                                        {% elif provider == 'GCP' %}badge-provider-google
+                                        {% elif provider == 'Azure' %}badge-provider-azure
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ provider }}
+                                    </span>: 
+                                    {{ price }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        {% if gpu.common_instance_families %}
+                            <h6>Common Instance Families:</h6>
+                            <ul class="list-unstyled">
+                                {% for provider, family in gpu.common_instance_families.items() %}
+                                    {% if family != "N/A" %}
+                                        <li>
+                                            <span class="badge 
+                                                {% if provider == 'AWS' %}badge-provider-aws
+                                                {% elif provider == 'GCP' %}badge-provider-google
+                                                {% elif provider == 'Azure' %}badge-provider-azure
+                                                {% else %}bg-secondary{% endif %}">
+                                                {{ provider }}
+                                            </span>: {{ family }}
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    </div>
+{% endblock %}

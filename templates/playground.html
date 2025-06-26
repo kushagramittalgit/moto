@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MotoNexAI - Internal OSS AI Model Hub</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #f59e0b;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --dark-bg: #1f2937;
+            --light-bg: #f8fafc;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            color: var(--primary-color) !important;
+            font-size: 1.5rem;
+        }
+
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            margin-bottom: 1.5rem; /* Space between cards */
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            border-radius: 25px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.4);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .hero-section {
+            text-align: center;
+            color: white;
+            padding: 4rem 0;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .model-card .card-header {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            font-weight: 600;
+        }
+
+        .badge-custom {
+            background: var(--accent-color);
+            color: white;
+            border-radius: 15px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            margin: 0.2rem;
+        }
+
+        .gpu-selector {
+            background: var(--light-bg);
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .response-area {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            border: 1px solid #dee2e6;
+            min-height: 200px;
+        }
+
+        .prompt-output {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .modality-section {
+            margin: 2rem 0;
+        }
+
+        .modality-header {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem;
+            border-radius: 10px 10px 0 0;
+            margin-bottom: 0;
+            text-transform: capitalize; /* Capitalize modality names */
+        }
+
+        .model-status-badge {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-brain"></i> MotoNexAI
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/models">Models</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/prompt-generator">Prompt Generator</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/playground">Playground</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div style="height: 80px;"></div>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="text-center text-white mb-5">
+                <h1><i class="fas fa-play"></i> Model Playground</h1>
+                <p class="lead">Test and interact with AI models in real-time</p>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><i class="fas fa-cog"></i> Model Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="playgroundForm">
+                                <div class="mb-3">
+                                    <label for="model_select" class="form-label">Select Model</label>
+                                    <select class="form-select" id="model_select" name="model_name" required>
+                                        <option value="">Choose a model...</option>
+                                        {% for modality, models in models_data.items() %}
+                                            <optgroup label="{{ modality.replace('_', ' ').title() }} Models">
+                                                {% for model in models %}
+                                                    <option value="{{ model.name }}" 
+                                                            data-modality="{{ modality }}" 
+                                                            data-description="{{ model.description }}" 
+                                                            data-provider="{% if 'AWS' in model.name %}aws{% elif 'Google' in model.name %}google{% else %}local{% endif %}">
+                                                        {{ model.name }}
+                                                    </option>
+                                                {% endfor %}
+                                            </optgroup>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div id="modelInfo" class="alert alert-info" style="display: none;">
+                                    <h6>Model Information</h6>
+                                    <p id="modelDescription"></p>
+                                    <div>
+                                        <span id="modelProvider" class="badge bg-primary"></span>
+                                        <span id="modelModality" class="badge bg-secondary"></span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="user_input" class="form-label">Input</label>
+                                    <textarea class="form-control" id="user_input" name="user_input" rows="6" 
+                                              placeholder="Enter your text, question, or prompt here..." required></textarea>
+                                </div>
+
+                                <div class="mb-3" id="advancedSettings" style="display: none;">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">
+                                                <button class="btn btn-link text-decoration-none p-0" type="button" data-bs-toggle="collapse" data-bs-target="#settingsCollapse">
+                                                    <i class="fas fa-sliders-h"></i> Advanced Settings
+                                                </button>
+                                            </h6>
+                                        </div>
+                                        <div id="settingsCollapse" class="collapse">
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <label for="temperature" class="form-label">Temperature</label>
+                                                        <input type="range" class="form-range" id="temperature" name="temperature" min="0" max="2" step="0.1" value="0.7">
+                                                        <small class="text-muted">0.7</small>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <label for="max_tokens" class="form-label">Max Tokens</label>
+                                                        <input type="number" class="form-control form-control-sm" id="max_tokens" name="max_tokens" value="2048" min="1" max="8192">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane"></i> Send to Model
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-terminal"></i> Model Response</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="responseArea" class="response-area">
+                                <div class="text-center text-muted">
+                                    <i class="fas fa-robot fa-3x mb-3"></i>
+                                    <p>Select a model and enter your input to get started</p>
+                                    <small>All models are ready for testing</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-5">
+                <div class="col-12">
+                    <h2 class="text-white text-center mb-4">Explore Our Models</h2>
+                </div>
+                {% for modality, models in models_data.items() %}
+                    <div class="col-12 mb-4">
+                        <h4 class="modality-header">
+                            <i class="fas fa-{{ {'text':'pen-nib', 'vision':'eye', 'audio':'volume-up', 'video':'video', 'multimodal':'magic'} [modality] }}"></i>
+                            {{ modality.replace('_', ' ').title() }} Models
+                        </h4>
+                    </div>
+                    {% for model in models %}
+                        <div class="col-md-6 col-lg-4 d-flex align-items-stretch">
+                            <div class="card model-card w-100">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">{{ model.name }}</h5>
+                                    {% if 'AWS' in model.name %}
+                                        <span class="badge bg-warning">AWS</span>
+                                    {% elif 'Google' in model.name %}
+                                        <span class="badge bg-info">Google</span>
+                                    {% else %}
+                                        <span class="badge bg-primary">Local</span>
+                                    {% endif %}
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text">{{ model.description }}</p>
+                                    <hr>
+                                    <div class="mb-2">
+                                        <strong>License:</strong> {{ model.license }}
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Tasks:</strong>
+                                        {% for task in model.tasks %}
+                                            <span class="badge bg-secondary me-1">{{ task }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% if model.benchmarks %}
+                                        <div class="mb-2">
+                                            <strong>Benchmarks:</strong>
+                                            {% for key, value in model.benchmarks.items() %}
+                                                <span class="badge bg-success me-1">{{ key }}: {{ value }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    {% if model.tags %}
+                                        <div>
+                                            <strong>Tags:</strong>
+                                            {% for tag in model.tags %}
+                                                <span class="badge bg-dark me-1">{{ tag }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="card-footer text-end">
+                                    <button class="btn btn-sm btn-outline-primary select-model-btn" data-model-name="{{ model.name }}">
+                                        Select for Playground <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6><i class="fas fa-lightbulb"></i> Example Prompts by Model Type</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Text Generation</h6>
+                            <ul class="small">
+                                <li>Write a product description for a smart home device</li>
+                                <li>Summarize the latest AI research trends</li>
+                                <li>Explain quantum computing in simple terms</li>
+                                <li>Create a marketing email for a new product</li>
+                            </ul>
+                            
+                            <h6 class="text-success">Code Generation</h6>
+                            <ul class="small">
+                                <li>Write a Python function to sort a list</li>
+                                <li>Create a REST API endpoint in Flask</li>
+                                <li>Debug this JavaScript code: [paste code]</li>
+                                <li>Generate unit tests for this function</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-warning">Vision Models</h6>
+                            <ul class="small">
+                                <li>Describe what you see in this image</li>
+                                <li>Extract text from this screenshot</li>
+                                <li>Analyze the components in this diagram</li>
+                                <li>What's the main subject of this photo?</li>
+                            </ul>
+                            
+                            <h6 class="text-info">Multimodal & Reasoning</h6>
+                            <ul class="small">
+                                <li>Analyze this image and explain the main activity</li>
+                                <li>Compare and contrast the content of these two documents</li>
+                                <li>Generate a detailed explanation for this scientific concept</li>
+                                <li>Write a story based on the provided image and prompt</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Update temperature display
+        document.getElementById('temperature').addEventListener('input', function() {
+            this.nextElementSibling.textContent = this.value;
+        });
+
+        // Handle model selection in the main form
+        document.getElementById('model_select').addEventListener('change', function() {
+            const selected = this.options[this.selectedIndex];
+            const modelInfo = document.getElementById('modelInfo');
+            const modelDescription = document.getElementById('modelDescription');
+            const modelProvider = document.getElementById('modelProvider');
+            const modelModality = document.getElementById('modelModality');
+            const advancedSettings = document.getElementById('advancedSettings');
+            
+            if (selected.value) {
+                modelDescription.textContent = selected.dataset.description;
+                modelProvider.textContent = selected.dataset.provider?.toUpperCase() || 'LOCAL';
+                modelModality.textContent = selected.dataset.modality?.toUpperCase() || 'TEXT';
+                
+                // Show provider-specific styling
+                modelProvider.className = 'badge ' + (selected.dataset.provider === 'aws' ? 'bg-warning' : (selected.dataset.provider === 'google' ? 'bg-info' : 'bg-primary'));
+                
+                modelInfo.style.display = 'block';
+                advancedSettings.style.display = 'block';
+            } else {
+                modelInfo.style.display = 'none';
+                advancedSettings.style.display = 'none';
+            }
+        });
+
+        // Handle form submission
+        document.getElementById('playgroundForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const responseArea = document.getElementById('responseArea');
+            const modelName = document.getElementById('model_select').value;
+            const userInput = document.getElementById('user_input').value;
+            const temperature = document.getElementById('temperature').value;
+            const maxTokens = document.getElementById('max_tokens').value;
+            
+            if (!modelName || !userInput) {
+                alert('Please select a model and enter some input');
+                return;
+            }
+            
+            // Show loading state
+            responseArea.innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Processing with ${modelName}...</p>
+                    <small class="text-muted">Temperature: ${temperature} | Max Tokens: ${maxTokens}</small>
+                </div>
+            `;
+            
+            const formData = new FormData(this);
+            
+            fetch('/test-model', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    responseArea.innerHTML = `
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-robot"></i> Response from ${data.model}
+                                    <span class="badge bg-success ms-2">✓ Success</span>
+                                </h6>
+                                <button class="btn btn-sm btn-outline-primary" onclick="copyResponse(event)">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                            <div class="bg-light p-3 rounded border" id="modelResponse" style="white-space: pre-wrap;">
+                                ${data.response.replace(/\n/g, '<br>')}
+                            </div>
+                        </div>
+                        <div class="text-muted small">
+                            <i class="fas fa-clock"></i> Response generated at ${new Date().toLocaleTimeString()}
+                            ${data.tokens ? ` | Tokens: ${data.tokens}` : ''}
+                            ${data.response_time ? ` | Time: ${data.response_time}ms` : ''}
+                        </div>
+                    `;
+                } else {
+                    responseArea.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h6><i class="fas fa-exclamation-triangle"></i> Error</h6>
+                            <p>${data.error}</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                responseArea.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Connection Error</h6>
+                        <p>Failed to get response: ${error.message}</p>
+                        <small class="text-muted">Please check if the model service is running.</small>
+                    </div>
+                `;
+            });
+        });
+
+        function copyResponse(event) {
+            const responseElement = document.getElementById('modelResponse');
+            const text = responseElement.textContent || responseElement.innerText;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const button = event.target.closest('button');
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                button.classList.remove('btn-outline-primary');
+                button.classList.add('btn-success');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('btn-success');
+                    button.classList.add('btn-outline-primary');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
+
+        // Add example prompt quick-fill functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const exampleLinks = document.querySelectorAll('.card-body ul li');
+            exampleLinks.forEach(link => {
+                link.style.cursor = 'pointer';
+                link.addEventListener('click', function() {
+                    const textarea = document.getElementById('user_input');
+                    textarea.value = this.textContent.trim();
+                    textarea.focus();
+                });
+            });
+
+            // Add functionality to "Select for Playground" buttons on model cards
+            const selectModelButtons = document.querySelectorAll('.select-model-btn');
+            selectModelButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const modelName = this.dataset.modelName;
+                    const modelSelect = document.getElementById('model_select');
+                    
+                    // Find the option and set it as selected
+                    for (let i = 0; i < modelSelect.options.length; i++) {
+                        if (modelSelect.options[i].value === modelName) {
+                            modelSelect.selectedIndex = i;
+                            // Trigger change event to update model info display
+                            modelSelect.dispatchEvent(new Event('change')); 
+                            break;
+                        }
+                    }
+                    // Scroll to the top of the playground form for better UX
+                    document.getElementById('playgroundForm').scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

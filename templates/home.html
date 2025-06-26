@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <h1 class="hero-title">🚀 MotoNexAI</h1>
+        <p class="hero-subtitle">Your internal launchpad for trusted AI models</p>
+        <p class="lead">A centralized, secure, and fully managed Model-as-a-Service (MaaS) platform</p>
+        <a href="{{ url_for('models') }}" class="btn btn-primary btn-lg me-3">
+            <i class="fas fa-rocket"></i> Explore Models
+        </a>
+        <a href="{{ url_for('prompt_generator') }}" class="btn btn-outline-light btn-lg">
+            <i class="fas fa-magic"></i> Generate Prompts
+        </a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12 text-center mb-5">
+            <h2 class="text-white mb-4">🔥 What MotoNexAI Offers</h2>
+            <p class="text-white-50 lead">Access curated open-source AI models across all modalities with minimal setup</p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="feature-icon" style="background: linear-gradient(45deg, #667eea, #764ba2);">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h5>🔤 Text Models</h5>
+                    <p>LLMs, embeddings, NLP models for text generation, summarization, and analysis</p>
+                    <div class="text-muted small">Mistral • TinyLlama • Falcon • GPT-J</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="feature-icon" style="background: linear-gradient(45deg, #f093fb, #f5576c);">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <h5>👁️ Vision Models</h5>
+                    <p>Object detection, image classification, OCR, and segmentation models</p>
+                    <div class="text-muted small">YOLOv8 • SAM • ViT • CLIP</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="feature-icon" style="background: linear-gradient(45deg, #4facfe, #00f2fe);">
+                        <i class="fas fa-volume-up"></i>
+                    </div>
+                    <h5>🗣️ Audio Models</h5>
+                    <p>Speech-to-text, text-to-speech, and audio classification models</p>
+                    <div class="text-muted small">Whisper • Bark • SpeechBrain</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="feature-icon" style="background: linear-gradient(45deg, #fa709a, #fee140);">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <h5>🎞️ Video Models</h5>
+                    <p>Action recognition, video summarization, and analysis models</p>
+                    <div class="text-muted small">SlowFast • MoViNet • VideoMAE</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="feature-icon" style="background: linear-gradient(45deg, #a8edea, #fed6e3);">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <h5>🤝 Multimodal Models</h5>
+                    <p>Image captioning, visual QA, and cross-modal understanding</p>
+                    <div class="text-muted small">LLaVA • BLIP-2 • Fuyu • MiniGPT-4</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-star"></i> Core Features</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> <strong>Multimodal Model Catalog</strong> - Searchable registry with performance benchmarks</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> <strong>On-Demand Serving</strong> - Containerized inference with GPU selection</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> <strong>System Prompt Generator</strong> - AI-powered prompt optimization</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> <strong>Inference Playground</strong> - No-code testing interface</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> <strong>License Guard</strong> - Only Apache/MIT or vetted models</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> <strong>REST APIs & SDKs</strong> - Easy integration with your apps</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
